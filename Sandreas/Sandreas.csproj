@@ -4,12 +4,21 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <PackageId>Sandreas.AudioMetadata</PackageId>
+        <Authors>sandreas</Authors>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <RepositoryUrl>https://github.com/sandreas/DotnetLibAudioMetadata.git</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/sandreas/DotnetLibAudioMetadata.git</PackageProjectUrl>
+        <PackageTags>audio</PackageTags>
+        <Description>
+            Extension library to improve abilities of atldotnet, an excelent audio metadata library.
+        </Description>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-      <PackageReference Include="Sandreas.Files" Version="1.1.0" />
-      <PackageReference Include="z440.atl.core" Version="4.8.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1"/>
+        <PackageReference Include="Sandreas.Files" Version="1.1.0"/>
+        <PackageReference Include="z440.atl.core" Version="4.8.0"/>
     </ItemGroup>
 
 </Project>
