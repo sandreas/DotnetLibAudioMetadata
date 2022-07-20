@@ -409,11 +409,11 @@ public static class MetadataExtensions
     public static bool IsEmpty(object? value, MetadataEmptyFlags flags = MetadataEmptyFlags.All) => value switch
     {
         null => flags.HasFlag(MetadataEmptyFlags.Null),
-        int i => i != 0 && flags.HasFlag(MetadataEmptyFlags.Int),
-        float f => f != 0.0f && flags.HasFlag(MetadataEmptyFlags.Float),
-        double d => d != 0.0d && flags.HasFlag(MetadataEmptyFlags.Double),
-        string s => !string.IsNullOrEmpty(s) && flags.HasFlag(MetadataEmptyFlags.String),
-        DateTime d => d != DateTime.MinValue && flags.HasFlag(MetadataEmptyFlags.DateTime),
+        int i => i == 0 && flags.HasFlag(MetadataEmptyFlags.Int),
+        float f => f == 0.0f && flags.HasFlag(MetadataEmptyFlags.Float),
+        double d => d == 0.0d && flags.HasFlag(MetadataEmptyFlags.Double),
+        string s => string.IsNullOrEmpty(s) && flags.HasFlag(MetadataEmptyFlags.String),
+        DateTime d => d == DateTime.MinValue && flags.HasFlag(MetadataEmptyFlags.DateTime),
         LyricsInfo l => string.IsNullOrEmpty(l.UnsynchronizedLyrics) && l.SynchronizedLyrics.Count == 0 &&
                         flags.HasFlag(MetadataEmptyFlags.Lyrics),
         IList<ChapterInfo> { Count: 0 }
