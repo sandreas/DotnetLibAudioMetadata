@@ -38,7 +38,8 @@ public class PropertyRenameAndIgnoreSerializerContractResolver : DefaultContract
 
     private bool IsIgnored(Type? type, string? jsonPropertyName)
     {
-        return type == null || jsonPropertyName == null || _ignores.ContainsKey(type) && _ignores[type].Contains(jsonPropertyName);
+        return type == null || jsonPropertyName == null ||
+               _ignores.ContainsKey(type) && _ignores[type].Contains(jsonPropertyName);
     }
 }
 
@@ -367,7 +368,7 @@ public static class MetadataExtensions
         foreach (var property in MetadataProperties)
         {
             var destinationPropertyValue = metadata.GetMetadataPropertyValue(property);
-            if (IsConsideredEmpty(destinationPropertyValue))
+            if (IsEmpty(destinationPropertyValue))
             {
                 metadata.SetMetadataPropertyValue(property, source.GetMetadataPropertyValue(property));
             }
@@ -380,7 +381,7 @@ public static class MetadataExtensions
         foreach (var property in MetadataProperties)
         {
             var newValue = source.GetMetadataPropertyValue(property);
-            if (IsConsideredEmpty(newValue))
+            if (IsEmpty(newValue))
             {
                 continue;
             }
@@ -389,7 +390,8 @@ public static class MetadataExtensions
         }
     }
 
-    public static void OverwriteProperties(this IMetadata metadata, IMetadata source, IEnumerable<string>? removeAdditionalKeys = null)
+    public static void OverwriteProperties(this IMetadata metadata, IMetadata source,
+        IEnumerable<string>? removeAdditionalKeys = null)
     {
         foreach (var property in MetadataProperties)
         {
@@ -397,29 +399,33 @@ public static class MetadataExtensions
         }
 
         if (removeAdditionalKeys == null) return;
-        foreach(var key in removeAdditionalKeys)
+        foreach (var key in removeAdditionalKeys)
         {
             metadata.AdditionalFields.Remove(key);
         }
-
     }
 
-    private static bool IsConsideredEmpty(object? value) => value switch
+
+    public static bool IsEmpty(object? value, MetadataEmptyFlags flags = MetadataEmptyFlags.All) => value switch
     {
-        null => true,
-        string s when string.IsNullOrEmpty(s) => true,
-        DateTime d when d == DateTime.MinValue => true,
-        LyricsInfo l => string.IsNullOrEmpty(l.UnsynchronizedLyrics) && l.SynchronizedLyrics.Count == 0,
+        null => flags.HasFlag(MetadataEmptyFlags.Null),
+        int i => i != 0 && flags.HasFlag(MetadataEmptyFlags.Int),
+        float f => f != 0.0f && flags.HasFlag(MetadataEmptyFlags.Float),
+        double d => d != 0.0d && flags.HasFlag(MetadataEmptyFlags.Double),
+        string s => !string.IsNullOrEmpty(s) && flags.HasFlag(MetadataEmptyFlags.String),
+        DateTime d => d != DateTime.MinValue && flags.HasFlag(MetadataEmptyFlags.DateTime),
+        LyricsInfo l => string.IsNullOrEmpty(l.UnsynchronizedLyrics) && l.SynchronizedLyrics.Count == 0 &&
+                        flags.HasFlag(MetadataEmptyFlags.Lyrics),
         IList<ChapterInfo> { Count: 0 }
             or IList<PictureInfo> { Count: 0 }
-            or IDictionary<string, string> { Count: 0 } => true,
+            or IDictionary<string, string> { Count: 0 } => flags.HasFlag(MetadataEmptyFlags.Enumerable),
         _ => false
     };
 
     public static void ClearProperties(this IMetadata metadata, IEnumerable<MetadataProperty>? propertiesToKeep = null)
     {
         var propertiesToKeepArray = propertiesToKeep?.ToArray() ?? Array.Empty<MetadataProperty>();
-        
+
         // part is a virtual property that wraps movement in case of non int values
         // so this has to be handled separately
         var keepPart = propertiesToKeepArray.Contains(MetadataProperty.Part) ||
@@ -435,7 +441,7 @@ public static class MetadataExtensions
                 metadata.SetMetadataPropertyValue(property, null);
             }
         }
-        
+
         metadata.SetMetadataPropertyValue(MetadataProperty.Part, part);
     }
 
