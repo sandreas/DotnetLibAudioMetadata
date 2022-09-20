@@ -11,11 +11,11 @@ public class MetadataTrack : Track, IMetadata
     public string? BasePath { get; set; }  
 
     private readonly MetadataSpecification _manualMetadataSpecification = MetadataSpecification.Undefined;
-    public MetadataSpecification[] MetadataSpecifications => MetadataFormats
+    public MetadataSpecification[] MetadataSpecifications => MetadataFormats?
         .Select(AtlFileFormatToMetadataFormat)
         .Concat(new []{_manualMetadataSpecification})
     .Where(tagType => tagType != MetadataSpecification.Undefined)
-    .ToArray();
+    .ToArray() ?? Array.Empty<MetadataSpecification>();
     public DateTime? RecordingDate
     {
         get => Date;
