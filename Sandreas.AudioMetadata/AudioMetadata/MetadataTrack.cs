@@ -56,34 +56,17 @@ public class MetadataTrack : Track, IMetadata
         { nameof(EncodedBy), ("TENC", "TENC", "", "T=30 ENCODED_BY", "WM/EncodedBy", "EncodedBy", "ENCODED-BY", "") },
         { nameof(EncoderSettings), ("TSSE", "TSSE", "©enc", "T=30", "WM/EncodingSettings", "", "ENCODER SETTINGS", "") },
         { nameof(EncodingTool), ("", "", "©too", "", "WM/ToolName", "", "ENCODER", "") },
-        { nameof(Group), ("TIT1", "TIT1", "©grp", "T=30", "WM/ArtistSortOrder", "Grouping", "GROUPING", "") },
         { nameof(ItunesCompilation), ("TCMP", "TCMP", "cpil", "T=30", "", "Compilation", "COMPILATION", "") },
         { nameof(ItunesMediaType), ("", "", "stik", "", "", "", "", "") },
         { nameof(ItunesPlayGap), ("", "", "pgap", "", "", "", "", "") },
-        { nameof(LongDescription), ("TDES", "TDES", "ldes", "T=30", "", "", "", "") },
         { nameof(Part), ("TXXX:PART", "TXXX:PART", "----:com.pilabor.tone:PART", "T=20 PART_NUMBER", "", "", "PARTNUMBER", "") },
-        { nameof(Movement), ("MVIN", "MVIN", "©mvi", "T=20 PART_NUMBER", "", "MOVEMENT", "MOVEMENT", "") },
-        { nameof(MovementName), ("MVNM", "MVNM", "©mvn", "T=20 TITLE", "", "MOVEMENTNAME", "MOVEMENTNAME", "") },
         // {nameof(MovementTotal), ("MVIN","MVIN","©mvc","T=30","","")}, // special case: MVIN has to be appended, not replaced
         { nameof(Narrator), ("", "", "©nrt", "T=30", "", "", "", "") },
         { nameof(PurchaseDate), ("", "", "purd", "", "", "", "", "") },
-        { nameof(SortAlbum), ("TSOA", "TSOA", "soal", "T=50 SORT_WITH", "WM/AlbumSortOrder", "ALBUMSORT", "ALBUMSORT", "") },
-        { nameof(SortAlbumArtist), ("TSO2", "TSO2", "soaa", "T=30", "", "ALBUMARTISTSORT", "ALBUMARTISTSORT", "") },
-        { nameof(SortArtist), ("TSOP", "TSOP", "soar", "T=30", "WM/ArtistSortOrder", "ARTISTSORT", "ARTISTSORT", "") },
         { nameof(SortComposer), ("TSOC", "TSOC", "soco", "T=30", "", "", "", "") },
-        { nameof(SortTitle), ("TSOT", "TSOT", "sonm", "T=30 SORT_WITH", "WM/TitleSortOrder", "TITLESORT", "TITLESORT", "") },
         { nameof(Subtitle), ("TIT3", "TIT3", "----:com.apple.iTunes:SUBTITLE", "T=30", "WM/SubTitle", "Subtitle", "SUBTITLE", "") },
         /*mp4 => ©st3 ? */
     };
-
-    // todo: for fields that are combined multiple values
-    // private Dictionary<string, string> TagMappingValues = new();
-    //
-    // // idea: MVIN, () => { return $"{Movement}/{MovementTotal}"}, (additionalFieldValue) => {additionalFieldValue.Split("/")...}
-    // private static Dictionary<string, Func<string>> TagMappingBuilders = new()
-    // {
-    //
-    // };
 
     public int? Bpm
     {
@@ -109,12 +92,6 @@ public class MetadataTrack : Track, IMetadata
         set => SetAdditionalField(value);
     }
 
-    public string? Group
-    {
-        get => GetAdditionalField(StringField);
-        set => SetAdditionalField(value);
-    }
-
     public ItunesCompilation? ItunesCompilation
     {
         get => HasAdditionalField() ? GetAdditionalField(EnumField<ItunesCompilation>) : null;
@@ -133,16 +110,17 @@ public class MetadataTrack : Track, IMetadata
         set => SetAdditionalField(value);
     }
 
-    public string? LongDescription
-    {
-        get => GetAdditionalField(StringField);
-        set => SetAdditionalField(value);
-    }
-
     public string? Movement
     {
-        get => GetAdditionalField(StringField);
-        set => SetAdditionalField(value);
+        get => SeriesPart;
+        set {
+            // movement MUST contain an integer value, which leads to an exception, if a string like 1.5 is stored
+            // to store a non-integer value, use Part instead
+            if (value == null || int.TryParse(value, out _))
+            {
+                SeriesPart = value;
+            }
+        }
     }
 
     public string? Part
@@ -157,8 +135,8 @@ public class MetadataTrack : Track, IMetadata
 
     public string? MovementName
     {
-        get => GetAdditionalField(StringField);
-        set => SetAdditionalField(value);
+        get => SeriesTitle;
+        set => SeriesTitle = value;
     }
 
     public string? Narrator
@@ -173,36 +151,11 @@ public class MetadataTrack : Track, IMetadata
         set => SetAdditionalField(value);
     }
 
-    public string? SortAlbum
-    {
-        get => GetAdditionalField(StringField);
-        set => SetAdditionalField(value);
-    }
-
-    public string? SortAlbumArtist
-    {
-        get => GetAdditionalField(StringField);
-        set => SetAdditionalField(value);
-    }
-
-    public string? SortArtist
-    {
-        get => GetAdditionalField(StringField);
-        set => SetAdditionalField(value);
-    }
-
     public string? SortComposer
     {
         get => GetAdditionalField(StringField);
         set => SetAdditionalField(value);
     }
-
-    public string? SortTitle
-    {
-        get => GetAdditionalField(StringField);
-        set => SetAdditionalField(value);
-    }
-
 
     public string? Subtitle
     {
@@ -237,14 +190,14 @@ public class MetadataTrack : Track, IMetadata
         // If you want to remove a field, just assign an empty value "" to it and save
     }
 
-    public MetadataTrack(string path, IProgress<float>? writeProgress = null, bool load = true)
-        : base(path, writeProgress, load)
+    public MetadataTrack(string path, bool load = true)
+        : base(path, load)
     {
         InitMetadataTrack();
     }
 
-    public MetadataTrack(IFileSystemInfo fileInfo, IProgress<float>? writeProgress = null, bool load = true)
-        : base(fileInfo.FullName, writeProgress, load)
+    public MetadataTrack(IFileSystemInfo fileInfo, bool load = true)
+        : base(fileInfo.FullName, load)
     {
         InitMetadataTrack();
     }
@@ -307,13 +260,6 @@ public class MetadataTrack : Track, IMetadata
 
     private void SetAdditionalField<T>(T? value, [CallerMemberName] string key = "")
     {
-        // movement MUST contain an integer value, which leads to an exception, if a string like 1.5 is stored
-        // to store a non-integer value, use Part instead
-        if (key == nameof(Movement) && value is string v && !int.TryParse(v, out _))
-        {
-            return;
-        }
-        
         foreach (var spec in MetadataSpecifications)
         {
             var mappedKey = MapAdditionalFieldKey(spec, key);
