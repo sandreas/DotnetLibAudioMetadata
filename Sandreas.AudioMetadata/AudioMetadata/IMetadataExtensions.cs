@@ -99,6 +99,11 @@ public static class MetadataExtensions
         _ => null
     };
 
+    public static void RemoveMetadataPropertyValue(this IMetadata metadata, MetadataProperty property)
+    {
+        metadata.SetMetadataPropertyValue(property, metadata.GetPropertyValueThatLeadsToRemoval(property));
+    }
+    
     public static object? GetMetadataPropertyValue(this IMetadata metadata, MetadataProperty property) =>
         property switch
         {
@@ -153,34 +158,64 @@ public static class MetadataExtensions
     public static void SetMetadataPropertyValue(this IMetadata metadata, MetadataProperty property, string? value,
         Type type)
     {
-        var valueToSet = value == null ? null : ConvertStringToType(value, type);
+        var valueToSet = value == null ? metadata.GetPropertyValueThatLeadsToRemoval(property) : ConvertStringToType(value, type);
         metadata.SetMetadataPropertyValue(property, valueToSet);
+    }
+
+    /// <summary>
+    /// The curent atldotnet API in some cases  does not allow to remove a value by setting it to null
+    /// This method determines the required value to remove it, in the future this method may be removed by just using
+    /// null as value
+    /// </summary>
+    /// <param name="metadata"></param>
+    /// <param name="property"></param>
+    /// <returns></returns>
+    private static object? GetPropertyValueThatLeadsToRemoval(this IMetadata metadata, MetadataProperty property) 
+    {
+        if (metadata.GetMetadataPropertyType(property)== typeof(string))
+        {
+            return "";
+        } 
+        if(metadata.GetMetadataPropertyType(property)== typeof(int))
+        {
+            return 0;
+        } 
+        if(metadata.GetMetadataPropertyType(property)== typeof(DateTime))
+        {
+            return DateTime.MinValue;
+        } 
+        if(metadata.GetMetadataPropertyType(property)== typeof(IList<ChapterInfo>))
+        {
+            return new List<ChapterInfo>();
+        } 
+        if(metadata.GetMetadataPropertyType(property)== typeof(IList<PictureInfo>))
+        {
+            return new List<PictureInfo>();
+        }
+        if(metadata.GetMetadataPropertyType(property)== typeof(IDictionary<string, string>))
+        {
+            return new Dictionary<string, string>();
+        }
+        return null;
     }
 
     private static object? ConvertStringToType(string grokItemValue, Type type) => type switch
     {
-        var t when t == typeof(string) => grokItemValue,
-        var t when t == typeof(DateTime) => TryParseDateTime(grokItemValue, out var dateTime) ? dateTime : null,
-        var t when t == typeof(int) => int.TryParse(grokItemValue, out var i) ? i : null,
-        var t when t == typeof(ItunesCompilation) => Enum.TryParse(grokItemValue, out ItunesCompilation i) ? i : null,
-        var t when t == typeof(ItunesMediaType) => Enum.TryParse(grokItemValue, out ItunesMediaType i) ? i : null,
-        var t when t == typeof(ItunesPlayGap) => Enum.TryParse(grokItemValue, out ItunesPlayGap i) ? i : null,
-        var t when t == typeof(LyricsInfo) => string.IsNullOrWhiteSpace(grokItemValue)
+        _ when type == typeof(string) => grokItemValue,
+        _ when type == typeof(DateTime) => TryParseDateTime(grokItemValue, out var dateTime) ? dateTime : null,
+        _ when type == typeof(int) => int.TryParse(grokItemValue, out var i) ? i : null,
+        _ when type == typeof(ItunesCompilation) => Enum.TryParse(grokItemValue, out ItunesCompilation i) ? i : null,
+        _ when type == typeof(ItunesMediaType) => Enum.TryParse(grokItemValue, out ItunesMediaType i) ? i : null,
+        _ when type == typeof(ItunesPlayGap) => Enum.TryParse(grokItemValue, out ItunesPlayGap i) ? i : null,
+        _ when type == typeof(LyricsInfo) => string.IsNullOrWhiteSpace(grokItemValue)
             ? null
             : new LyricsInfo { ContentType = LyricsInfo.LyricsType.LYRICS, UnsynchronizedLyrics = grokItemValue },
-        var t when t == typeof(IList<ChapterInfo>) => null,
-        var t when t == typeof(IList<PictureInfo>) => null, // todo: maybe check, if this is a cover file?
-        var t when t == typeof(IDictionary<string, string>) => null, // todo: maybe parse json?
+        _ when type == typeof(IList<ChapterInfo>) => null,
+        _ when type == typeof(IList<PictureInfo>) => null,
+        _ when type == typeof(IDictionary<string, string>) => null,
         _ => null
     };
 
-    /*
-    public static object ConvertStringToType<T>() where T:struct => default(T) switch {
-        byte => "byte",
-        sbyte => "sbyte"
-        _ => "Not a byte or sbyte"
-    };
-    */
     private static bool TryParseDateTime(string dateTimeAsString, out DateTime dateTime)
     {
         if (dateTimeAsString.Length == 4 && dateTimeAsString.All(char.IsDigit))
@@ -325,6 +360,7 @@ public static class MetadataExtensions
                 metadata.Chapters = ObjectAsType<IList<ChapterInfo>?>(value) ?? new List<ChapterInfo>();
                 break;
             case MetadataProperty.EmbeddedPictures:
+                // the simpler line above that works with chapters does not work for pictures, so this cant be replaced
                 var pictures = ObjectAsType<IList<PictureInfo>?>(value) ?? new List<PictureInfo>();
                 metadata.EmbeddedPictures.Clear();
                 foreach (var picture in pictures)
@@ -352,6 +388,8 @@ public static class MetadataExtensions
                 throw new ArgumentOutOfRangeException(nameof(property), property, null);
         }
     }
+    
+    
 
     private static T? ObjectAsType<T>(object? value)
     {
@@ -374,7 +412,6 @@ public static class MetadataExtensions
             }
         }
     }
-
 
     public static void OverwritePropertiesWhenNotEmpty(this IMetadata metadata, IMetadata source)
     {
