@@ -103,7 +103,7 @@ public static class MetadataExtensions
     {
         metadata.SetMetadataPropertyValue(property, metadata.GetPropertyValueThatLeadsToRemoval(property));
     }
-    
+
     public static object? GetMetadataPropertyValue(this IMetadata metadata, MetadataProperty property) =>
         property switch
         {
@@ -158,9 +158,12 @@ public static class MetadataExtensions
     public static void SetMetadataPropertyValue(this IMetadata metadata, MetadataProperty property, string? value,
         Type type)
     {
-        var valueToSet = value == null ? metadata.GetPropertyValueThatLeadsToRemoval(property) : ConvertStringToType(value, type);
+        var valueToSet = value == null
+            ? metadata.GetPropertyValueThatLeadsToRemoval(property)
+            : ConvertStringToType(value, type);
         metadata.SetMetadataPropertyValue(property, valueToSet);
     }
+
 
     /// <summary>
     /// The curent atldotnet API in some cases  does not allow to remove a value by setting it to null
@@ -170,46 +173,52 @@ public static class MetadataExtensions
     /// <param name="metadata"></param>
     /// <param name="property"></param>
     /// <returns></returns>
-    private static object? GetPropertyValueThatLeadsToRemoval(this IMetadata metadata, MetadataProperty property) 
+    private static object? GetPropertyValueThatLeadsToRemoval(this IMetadata metadata, MetadataProperty property)
     {
-        if (metadata.GetMetadataPropertyType(property)== typeof(string))
+        if (metadata.GetMetadataPropertyType(property) == typeof(string))
         {
             return "";
-        } 
-        if(metadata.GetMetadataPropertyType(property)== typeof(int))
+        }
+
+        if (metadata.GetMetadataPropertyType(property) == typeof(int))
         {
             return 0;
-        } 
-        if(metadata.GetMetadataPropertyType(property)== typeof(DateTime))
+        }
+
+        if (metadata.GetMetadataPropertyType(property) == typeof(DateTime))
         {
             return DateTime.MinValue;
-        } 
-        if(metadata.GetMetadataPropertyType(property)== typeof(IList<ChapterInfo>))
+        }
+
+        if (metadata.GetMetadataPropertyType(property) == typeof(IList<ChapterInfo>))
         {
             return new List<ChapterInfo>();
-        } 
-        if(metadata.GetMetadataPropertyType(property)== typeof(IList<PictureInfo>))
+        }
+
+        if (metadata.GetMetadataPropertyType(property) == typeof(IList<PictureInfo>))
         {
             return new List<PictureInfo>();
         }
-        if(metadata.GetMetadataPropertyType(property)== typeof(IDictionary<string, string>))
+
+        if (metadata.GetMetadataPropertyType(property) == typeof(IDictionary<string, string>))
         {
             return new Dictionary<string, string>();
         }
+
         return null;
     }
 
-    private static object? ConvertStringToType(string grokItemValue, Type type) => type switch
+    private static object? ConvertStringToType(string value, Type type) => type switch
     {
-        _ when type == typeof(string) => grokItemValue,
-        _ when type == typeof(DateTime) => TryParseDateTime(grokItemValue, out var dateTime) ? dateTime : null,
-        _ when type == typeof(int) => int.TryParse(grokItemValue, out var i) ? i : null,
-        _ when type == typeof(ItunesCompilation) => Enum.TryParse(grokItemValue, out ItunesCompilation i) ? i : null,
-        _ when type == typeof(ItunesMediaType) => Enum.TryParse(grokItemValue, out ItunesMediaType i) ? i : null,
-        _ when type == typeof(ItunesPlayGap) => Enum.TryParse(grokItemValue, out ItunesPlayGap i) ? i : null,
-        _ when type == typeof(LyricsInfo) => string.IsNullOrWhiteSpace(grokItemValue)
+        _ when type == typeof(string) => value,
+        _ when type == typeof(DateTime) => TryParseDateTime(value, out var dateTime) ? dateTime : null,
+        _ when type == typeof(int) => int.TryParse(value, out var i) ? i : null,
+        _ when type == typeof(ItunesCompilation) => Enum.TryParse(value, out ItunesCompilation i) ? i : null,
+        _ when type == typeof(ItunesMediaType) => Enum.TryParse(value, out ItunesMediaType i) ? i : null,
+        _ when type == typeof(ItunesPlayGap) => Enum.TryParse(value, out ItunesPlayGap i) ? i : null,
+        _ when type == typeof(LyricsInfo) => string.IsNullOrWhiteSpace(value)
             ? null
-            : new LyricsInfo { ContentType = LyricsInfo.LyricsType.LYRICS, UnsynchronizedLyrics = grokItemValue },
+            : new LyricsInfo { ContentType = LyricsInfo.LyricsType.LYRICS, UnsynchronizedLyrics = value },
         _ when type == typeof(IList<ChapterInfo>) => null,
         _ when type == typeof(IList<PictureInfo>) => null,
         _ when type == typeof(IDictionary<string, string>) => null,
@@ -224,6 +233,17 @@ public static class MetadataExtensions
         }
 
         return DateTime.TryParse(dateTimeAsString, out dateTime);
+    }
+
+    public static bool UpdateMetadataPropertyValue(this IMetadata metadata, MetadataProperty property, object? value)
+    {
+        if (EqualityComparer<object?>.Default.Equals(metadata.GetMetadataPropertyValue(property), value))
+        {
+            return false;
+        }
+
+        metadata.SetMetadataPropertyValue(property, value);
+        return true;
     }
 
     public static void SetMetadataPropertyValue(this IMetadata metadata, MetadataProperty property, object? value)
@@ -388,8 +408,7 @@ public static class MetadataExtensions
                 throw new ArgumentOutOfRangeException(nameof(property), property, null);
         }
     }
-    
-    
+
 
     private static T? ObjectAsType<T>(object? value)
     {

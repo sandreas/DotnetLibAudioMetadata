@@ -17,9 +17,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-        <PackageReference Include="Sandreas.Files" Version="1.1.1" />
-        <PackageReference Include="z440.atl.core" Version="4.13.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+        <PackageReference Include="Sandreas.Files" Version="1.1.2" />
+        <PackageReference Include="z440.atl.core" Version="4.16.0" />
     </ItemGroup>
 
 </Project>
