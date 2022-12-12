@@ -28,8 +28,8 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release /p:Version=${{ steps.version.outputs.version-without-v }}
       
-      - name: Test
-        run: dotnet test --configuration Release /p:Version=${{ steps.version.outputs.version-without-v }} --no-build
+#      - name: Test
+#        run: dotnet test --configuration Release /p:Version=${{ steps.version.outputs.version-without-v }} --no-build
       
       - name: Pack
         run: dotnet pack --configuration Release --include-symbols /p:Version=${{ steps.version.outputs.version-without-v }} --no-build --output .
