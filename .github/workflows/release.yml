@@ -6,8 +6,8 @@ on:
 env:
   GITHUB_USER: 'sandreas'
   PROJECT_NAME: 'Sandreas.AudioMetadata'
-  PROJECT_PATH: 'Sandreas.AudioMetadata/Sandreas.AudioMetadata..csproj'
-  DOTNET_VERSION: '7.0.x'
+  PROJECT_PATH: 'Sandreas.AudioMetadata/Sandreas.AudioMetadata.csproj'
+  DOTNET_VERSION: '7.0.100'
 jobs:
   build:
     runs-on: ubuntu-latest
