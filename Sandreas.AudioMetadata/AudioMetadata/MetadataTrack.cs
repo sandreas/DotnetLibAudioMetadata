@@ -53,7 +53,7 @@ public class MetadataTrack : Track, IMetadata
     {
         // ("ID3v2.3","ID3v2.4","MP4","Matroska","ASF/Windows Media", "APE" "RIFF INFO")
         { nameof(Bpm), ("TBPM", "TBPM", "tmpo", "T=30", "WM/BeatsPerMinute", "BPM", "BPM", "") },
-        { nameof(EncodedBy), ("TENC", "TENC", "", "T=30 ENCODED_BY", "WM/EncodedBy", "EncodedBy", "ENCODED-BY", "") },
+        // { nameof(EncodedBy), ("TENC", "TENC", "", "T=30 ENCODED_BY", "WM/EncodedBy", "EncodedBy", "ENCODED-BY", "") },
         { nameof(EncoderSettings), ("TSSE", "TSSE", "©enc", "T=30", "WM/EncodingSettings", "", "ENCODER SETTINGS", "") },
         { nameof(EncodingTool), ("", "", "©too", "", "WM/ToolName", "", "ENCODER", "") },
         { nameof(ItunesCompilation), ("TCMP", "TCMP", "cpil", "T=30", "", "Compilation", "COMPILATION", "") },
@@ -74,11 +74,13 @@ public class MetadataTrack : Track, IMetadata
         set => SetAdditionalField(value);
     }
 
+    /*
     public string? EncodedBy
     {
         get => GetAdditionalField(StringField);
         set => SetAdditionalField(value);
     }
+    */
 
     public string? EncoderSettings
     {
