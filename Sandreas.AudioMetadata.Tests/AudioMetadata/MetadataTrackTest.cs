@@ -3,15 +3,24 @@ namespace Sandreas.AudioMetadata.Tests.AudioMetadata;
 public class MetadataTrackTest
 {
     [Fact]
-    public void TestMappedProperties()
+    public void TestRemoveMovement()
     {
-        var exception = Record.Exception(() =>
+        var t = new MetadataTrack
         {
-            var track = new MetadataTrack
-            {
-                EncodingTool = "testing"
-            };
-        });
-        Assert.Null(exception);
+            Movement = "1"
+        };
+        t.RemoveMetadataPropertyValue(MetadataProperty.Movement);
+        Assert.Null(t.Movement);
+    }
+    
+    [Fact]
+    public void TestRecordingDate()
+    {
+        var t = new MetadataTrack
+        {
+            RecordingDate = DateTime.Today
+        };
+        t.RemoveMetadataPropertyValue(MetadataProperty.RecordingDate);
+        Assert.True(t.RecordingDate <= DateTime.MinValue);
     }
 }

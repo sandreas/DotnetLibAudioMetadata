@@ -118,6 +118,10 @@ public class MetadataTrack : Track, IMetadata
         set {
             // movement MUST contain an integer value, which leads to an exception, if a string like 1.5 is stored
             // to store a non-integer value, use Part instead
+            if (value == "")
+            {
+                value = null;
+            }
             if (value == null || int.TryParse(value, out _))
             {
                 SeriesPart = value;

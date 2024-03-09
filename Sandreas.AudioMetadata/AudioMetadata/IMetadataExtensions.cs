@@ -175,6 +175,11 @@ public static class MetadataExtensions
     /// <returns></returns>
     private static object? GetPropertyValueThatLeadsToRemoval(this IMetadata metadata, MetadataProperty property)
     {
+        if (property == MetadataProperty.Movement)
+        {
+            return null;
+        }
+        
         if (metadata.GetMetadataPropertyType(property) == typeof(string))
         {
             return "";
