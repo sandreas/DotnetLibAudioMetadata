@@ -19,7 +19,7 @@
     <ItemGroup>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="Sandreas.Files" Version="1.1.2" />
-        <PackageReference Include="z440.atl.core" Version="5.20.0" />
+        <PackageReference Include="z440.atl.core" Version="5.21.0" />
     </ItemGroup>
 
 </Project>
