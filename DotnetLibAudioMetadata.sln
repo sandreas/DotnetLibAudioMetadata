@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sandreas.AudioMetadata", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sandreas.AudioMetadata.Tests", "Sandreas.AudioMetadata.Tests\Sandreas.AudioMetadata.Tests.csproj", "{680C5977-EB3D-4D9C-AA31-2DA323749779}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CliTester", "CliTester\CliTester.csproj", "{6C35B672-75F8-4217-8C54-E5ED4966C0D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{680C5977-EB3D-4D9C-AA31-2DA323749779}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{680C5977-EB3D-4D9C-AA31-2DA323749779}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{680C5977-EB3D-4D9C-AA31-2DA323749779}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C35B672-75F8-4217-8C54-E5ED4966C0D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C35B672-75F8-4217-8C54-E5ED4966C0D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C35B672-75F8-4217-8C54-E5ED4966C0D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C35B672-75F8-4217-8C54-E5ED4966C0D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

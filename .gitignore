@@ -1,5 +1,6 @@
 */obj/
 */bin/
+*/tmp/
 */var/
 !*/var/*.gitkeep
 */dist/

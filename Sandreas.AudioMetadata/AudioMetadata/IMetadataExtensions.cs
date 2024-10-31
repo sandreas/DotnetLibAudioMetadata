@@ -99,11 +99,19 @@ public static class MetadataExtensions
         _ => null
     };
 
-    public static void RemoveMetadataPropertyValue(this IMetadata metadata, MetadataProperty property)
-    {
-        metadata.SetMetadataPropertyValue(property, metadata.GetPropertyValueThatLeadsToRemoval(property));
+    public static void RemoveMetadataPropertyValue(this IMetadata metadata, MetadataProperty property) {
+        switch(property) {
+            case MetadataProperty.Movement:
+                metadata.Movement = "";
+                break;
+            case MetadataProperty.Part:
+                metadata.Part = "";
+                break;
+            default:
+                metadata.SetMetadataPropertyValue(property, metadata.GetPropertyValueThatLeadsToRemoval(property));
+                break;
+        }
     }
-
     public static object? GetMetadataPropertyValue(this IMetadata metadata, MetadataProperty property) =>
         property switch
         {
@@ -175,11 +183,6 @@ public static class MetadataExtensions
     /// <returns></returns>
     private static object? GetPropertyValueThatLeadsToRemoval(this IMetadata metadata, MetadataProperty property)
     {
-        if (property == MetadataProperty.Movement)
-        {
-            return null;
-        }
-        
         if (metadata.GetMetadataPropertyType(property) == typeof(string))
         {
             return "";

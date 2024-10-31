@@ -116,15 +116,17 @@ public class MetadataTrack : Track, IMetadata
     {
         get => SeriesPart;
         set {
-            // movement MUST contain an integer value, which leads to an exception, if a string like 1.5 is stored
+            // movement MUST contain a valid integer value, which leads to an exception, if a string like 1.5 is provided
             // to store a non-integer value, use Part instead
-            if (value == "")
+            if (string.IsNullOrEmpty(value))
             {
-                value = null;
+                // SeriesPart only gets removed with an empty string
+                // null does not work
+                SeriesPart = ""; 
             }
-            if (value == null || int.TryParse(value, out _))
+            else if ( int.TryParse(value, out var intValue))
             {
-                SeriesPart = value;
+                SeriesPart = intValue.ToString();
             }
         }
     }
@@ -134,8 +136,14 @@ public class MetadataTrack : Track, IMetadata
         get => GetAdditionalField(StringField) ?? Movement;
         set
         {
+            // empty values will remove movement property,
+            // otherwise, movement should be set same as part only
+            // if they already have the same value
+            if (!string.IsNullOrEmpty(value) && GetAdditionalField(StringField) == Movement)
+            {
+                Movement = value;
+            }
             SetAdditionalField(value);
-            Movement = value;
         }
     }
 
