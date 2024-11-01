@@ -11,11 +11,27 @@ public class MetadataTrack : Track, IMetadata
     public string? BasePath { get; set; }  
 
     private readonly MetadataSpecification _manualMetadataSpecification = MetadataSpecification.Undefined;
-    public MetadataSpecification[] MetadataSpecifications => MetadataFormats?
-        .Select(AtlFileFormatToMetadataFormat)
-        .Concat(new []{_manualMetadataSpecification})
-    .Where(tagType => tagType != MetadataSpecification.Undefined)
-    .ToArray() ?? Array.Empty<MetadataSpecification>();
+    public MetadataSpecification[] MetadataSpecifications => GetMetadataSpecifications();
+
+    private MetadataSpecification[] GetMetadataSpecifications()
+    {
+        var metadataFormats = MetadataFormats ?? new List<Format>();
+        if(metadataFormats.Any())
+        {
+            return metadataFormats
+                .Select(AtlFileFormatToMetadataFormat)
+                .Where(tagType => tagType != MetadataSpecification.Undefined)
+                .ToArray();
+        }
+
+        if (_manualMetadataSpecification != MetadataSpecification.Undefined)
+        {
+            return new[] { _manualMetadataSpecification };
+        }
+
+        return Array.Empty<MetadataSpecification>();
+    }
+
     public DateTime? RecordingDate
     {
         get => Date;
@@ -116,8 +132,9 @@ public class MetadataTrack : Track, IMetadata
     {
         get => SeriesPart;
         set {
-            // movement MUST contain a valid integer value, which leads to an exception, if a string like 1.5 is provided
-            // to store a non-integer value, use Part instead
+            // movement MUST contain a valid integer value,
+            // values like 1.5 lead to an exception
+            // use Part to store a non-integer value, it will automatically handle Movement
             if (string.IsNullOrEmpty(value))
             {
                 // SeriesPart only gets removed with an empty string
@@ -126,8 +143,11 @@ public class MetadataTrack : Track, IMetadata
             }
             else if ( int.TryParse(value, out var intValue))
             {
+                // only if int.TryParse succeeds, a value will be set
                 SeriesPart = intValue.ToString();
             }
+            
+            // unparsable integer values will be ignored completely
         }
     }
 
@@ -136,13 +156,7 @@ public class MetadataTrack : Track, IMetadata
         get => GetAdditionalField(StringField) ?? Movement;
         set
         {
-            // empty values will remove movement property,
-            // otherwise, movement should be set same as part only
-            // if they already have the same value
-            if (!string.IsNullOrEmpty(value) && GetAdditionalField(StringField) == Movement)
-            {
-                Movement = value;
-            }
+            Movement = value;
             SetAdditionalField(value);
         }
     }
@@ -220,6 +234,16 @@ public class MetadataTrack : Track, IMetadata
     {
         Chapters ??= new List<ChapterInfo>();
         AdditionalFields ??= new Dictionary<string, string>();
+
+        if (!MetadataSpecifications.Any() && !string.IsNullOrEmpty(Path))
+        {
+            Update();
+        }
+        /*
+         
+        this.fileIO = this.stream != null ? new AudioFileIO(this.stream, this.mimeType, onlyReadEmbeddedPictures, Settings.ReadAllMetaFrames) : new AudioFileIO(this.Path, onlyReadEmbeddedPictures, Settings.ReadAllMetaFrames);
+        */
+        
     }
 
     private static string? StringField(string? value) => value;
