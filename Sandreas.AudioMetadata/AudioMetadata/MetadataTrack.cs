@@ -10,14 +10,13 @@ public class MetadataTrack : Track, IMetadata
     // meet IMetadata interface requirements
     public new string? Path => base.Path;
     public string? BasePath { get; set; }
-    public List<MetaDataIOFactory.TagType> SupportedMetas { get; set; } = new();
 
     private readonly MetadataSpecification _manualMetadataSpecification = MetadataSpecification.Undefined;
     public MetadataSpecification[] MetadataSpecifications => GetMetadataSpecifications();
 
     private MetadataSpecification[] GetMetadataSpecifications()
     {
-        var metadataFormats = MetadataFormats?.Where(f => f.ID != -1).ToList() ?? new List<Format>();
+        var metadataFormats = MetadataFormats?.Where(f => f.ID > 0).ToList() ?? new List<Format>();
         if(metadataFormats.Any())
         {
             return metadataFormats
@@ -31,10 +30,9 @@ public class MetadataTrack : Track, IMetadata
             return new[] { _manualMetadataSpecification };
         }
 
-        if (SupportedMetas.Any())
+        if (SupportedMetadataFormats.Any())
         {
-            
-            var meta = AudioFormat?.ID switch
+            var meta = AudioFormat?.ContainerId switch
             {
                 AudioDataIOFactory.CID_MP4 => MetadataSpecification.Mp4,
                 AudioDataIOFactory.CID_AIFF => MetadataSpecification.Aiff,
@@ -56,22 +54,23 @@ public class MetadataTrack : Track, IMetadata
     private MetadataSpecification GetFirstSupportedMeta()
     {
         var path = Path ?? string.Empty;
-        if (path.EndsWith(".ape") && SupportedMetas.Contains(MetaDataIOFactory.TagType.APE))
+        var hasApeSupport = SupportedMetadataFormats.Any(f => f.ID == (int)MetaDataIOFactory.TagType.APE);
+        if (path.EndsWith(".ape") && hasApeSupport)
         {
             return MetadataSpecification.Ape;
         }
 
-        if (SupportedMetas.Contains(MetaDataIOFactory.TagType.ID3V2))
+        if (SupportedMetadataFormats.Any(f => f.ID == (int)MetaDataIOFactory.TagType.ID3V2))
         {
             return Settings.ID3v2_tagSubVersion == 3  ? MetadataSpecification.Id3V23 : MetadataSpecification.Id3V24;
         }
         
-        if (SupportedMetas.Contains(MetaDataIOFactory.TagType.ID3V1))
+        if (SupportedMetadataFormats.Any(f => f.ID == (int)MetaDataIOFactory.TagType.ID3V1))
         {
             return MetadataSpecification.Id3V1;
         }
 
-        if (SupportedMetas.Contains(MetaDataIOFactory.TagType.APE))
+        if (hasApeSupport)
         {
             return MetadataSpecification.Ape;
         }
@@ -85,7 +84,7 @@ public class MetadataTrack : Track, IMetadata
         set => Date = value;
     }
 
-    // be able to set totalDuration, if it has not been detected or its a dummy track
+    // be able to set totalDuration, if it has not been detected or it's a dummy track
     private TimeSpan? _totalDuration;
 
     public TimeSpan TotalDuration
@@ -281,22 +280,6 @@ public class MetadataTrack : Track, IMetadata
     {
         Chapters ??= new List<ChapterInfo>();
         AdditionalFields ??= new Dictionary<string, string>();
-        
-        // if the file contains NO metadata, we need to determine the supportedMetas before the first write
-        // this piece of code may be removed after solving: https://github.com/Zeugma440/atldotnet/issues/286
-        if (!string.IsNullOrEmpty(Path) && !MetadataSpecifications.Any())
-        {
-            try
-            {
-                using var fs = new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read, Settings.FileBufferSize, FileOptions.RandomAccess);
-                var audioData = AudioDataIOFactory.GetInstance().GetFromStream(fs);
-                SupportedMetas = audioData.GetSupportedMetas();
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
     }
 
     private static string? StringField(string? value) => value;
