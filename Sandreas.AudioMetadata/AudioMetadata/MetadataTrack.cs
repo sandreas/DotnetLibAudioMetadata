@@ -1,6 +1,7 @@
 using System.IO.Abstractions;
 using System.Runtime.CompilerServices;
 using ATL;
+using ATL.AudioData;
 
 namespace Sandreas.AudioMetadata;
 
@@ -8,14 +9,15 @@ public class MetadataTrack : Track, IMetadata
 {
     // meet IMetadata interface requirements
     public new string? Path => base.Path;
-    public string? BasePath { get; set; }  
+    public string? BasePath { get; set; }
+    public List<MetaDataIOFactory.TagType> SupportedMetas { get; set; } = new();
 
     private readonly MetadataSpecification _manualMetadataSpecification = MetadataSpecification.Undefined;
     public MetadataSpecification[] MetadataSpecifications => GetMetadataSpecifications();
 
     private MetadataSpecification[] GetMetadataSpecifications()
     {
-        var metadataFormats = MetadataFormats ?? new List<Format>();
+        var metadataFormats = MetadataFormats?.Where(f => f.ID != -1).ToList() ?? new List<Format>();
         if(metadataFormats.Any())
         {
             return metadataFormats
@@ -29,7 +31,52 @@ public class MetadataTrack : Track, IMetadata
             return new[] { _manualMetadataSpecification };
         }
 
+        if (SupportedMetas.Any())
+        {
+            
+            var meta = AudioFormat?.ID switch
+            {
+                AudioDataIOFactory.CID_MP4 => MetadataSpecification.Mp4,
+                AudioDataIOFactory.CID_AIFF => MetadataSpecification.Aiff,
+                AudioDataIOFactory.CID_FLAC => MetadataSpecification.Vorbis,
+                AudioDataIOFactory.CID_OGG => MetadataSpecification.Vorbis,
+                AudioDataIOFactory.CID_WMA => MetadataSpecification.WindowsMediaAsf,
+                _ => GetFirstSupportedMeta()
+            };
+
+            if (meta != MetadataSpecification.Undefined)
+            {
+                return new[] { meta };
+            }
+        }
+
         return Array.Empty<MetadataSpecification>();
+    }
+
+    private MetadataSpecification GetFirstSupportedMeta()
+    {
+        var path = Path ?? string.Empty;
+        if (path.EndsWith(".ape") && SupportedMetas.Contains(MetaDataIOFactory.TagType.APE))
+        {
+            return MetadataSpecification.Ape;
+        }
+
+        if (SupportedMetas.Contains(MetaDataIOFactory.TagType.ID3V2))
+        {
+            return Settings.ID3v2_tagSubVersion == 3  ? MetadataSpecification.Id3V23 : MetadataSpecification.Id3V24;
+        }
+        
+        if (SupportedMetas.Contains(MetaDataIOFactory.TagType.ID3V1))
+        {
+            return MetadataSpecification.Id3V1;
+        }
+
+        if (SupportedMetas.Contains(MetaDataIOFactory.TagType.APE))
+        {
+            return MetadataSpecification.Ape;
+        }
+
+        return MetadataSpecification.Undefined;
     }
 
     public DateTime? RecordingDate
@@ -234,16 +281,22 @@ public class MetadataTrack : Track, IMetadata
     {
         Chapters ??= new List<ChapterInfo>();
         AdditionalFields ??= new Dictionary<string, string>();
-
-        if (!MetadataSpecifications.Any() && !string.IsNullOrEmpty(Path))
-        {
-            Update();
-        }
-        /*
-         
-        this.fileIO = this.stream != null ? new AudioFileIO(this.stream, this.mimeType, onlyReadEmbeddedPictures, Settings.ReadAllMetaFrames) : new AudioFileIO(this.Path, onlyReadEmbeddedPictures, Settings.ReadAllMetaFrames);
-        */
         
+        // if the file contains NO metadata, we need to determine the supportedMetas before the first write
+        // this piece of code may be removed after solving: https://github.com/Zeugma440/atldotnet/issues/286
+        if (!string.IsNullOrEmpty(Path) && !MetadataSpecifications.Any())
+        {
+            try
+            {
+                using var fs = new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read, Settings.FileBufferSize, FileOptions.RandomAccess);
+                var audioData = AudioDataIOFactory.GetInstance().GetFromStream(fs);
+                SupportedMetas = audioData.GetSupportedMetas();
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
     }
 
     private static string? StringField(string? value) => value;
