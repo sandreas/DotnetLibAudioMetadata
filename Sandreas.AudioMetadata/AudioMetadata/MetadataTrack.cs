@@ -123,7 +123,7 @@ public class MetadataTrack : Track, IMetadata
         { nameof(ItunesPlayGap), ("", "", "pgap", "", "", "", "", "") },
         { nameof(Part), ("TXXX:PART", "TXXX:PART", "----:com.pilabor.tone:PART", "T=20 PART_NUMBER", "", "", "PARTNUMBER", "") },
         // {nameof(MovementTotal), ("MVIN","MVIN","©mvc","T=30","","")}, // special case: MVIN has to be appended, not replaced
-        { nameof(Narrator), ("", "", "©nrt", "T=30", "", "", "", "") },
+        { nameof(Narrator), ("TXXX:NARRATOR", "TXXX:NARRATOR", "©nrt", "T=30", "", "", "", "") },
         { nameof(PurchaseDate), ("", "", "purd", "", "", "", "", "") },
         { nameof(SortComposer), ("TSOC", "TSOC", "soco", "T=30", "", "", "", "") },
         { nameof(Subtitle), ("TIT3", "TIT3", "----:com.apple.iTunes:SUBTITLE", "T=30", "WM/SubTitle", "Subtitle", "SUBTITLE", "") },
