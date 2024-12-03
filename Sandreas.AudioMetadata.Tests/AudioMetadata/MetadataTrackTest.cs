@@ -5,10 +5,22 @@ namespace Sandreas.AudioMetadata.Tests.AudioMetadata;
 public class MetadataTrackTest
 {
     private MetadataTrack _sut;
+    private readonly IMetadata _sutUndefined;
+
     public MetadataTrackTest()
     {
         _sut = new MetadataTrack(MetadataSpecification.Id3V24);
+        _sutUndefined = new MetadataTrackHolder();
     }
+    
+    [Fact]
+    public void Bpm_ShouldWork()
+    {
+        _sutUndefined.Bpm.Should().Be(null);
+        _sutUndefined.Bpm = 100;
+        _sutUndefined.Bpm.Should().Be(100);
+    }    
+    
     
     [Fact]
     public void Part_ShouldAlsoSetMovement_WhenIntegerStringIsUsed()
