@@ -39,7 +39,7 @@ public class MetadataTrack : MetadataTrackHolder
         { nameof(Subtitle), ("TIT3", "TIT3", "----:com.apple.iTunes:SUBTITLE", "T=30", "WM/SubTitle", "Subtitle", "SUBTITLE", "") },
         /*mp4 => ©st3 ? */
     };
-    protected IDictionary<string, string> MapAdditionalFields()
+    protected override IDictionary<string, string> MapAdditionalFields()
     {
         return AdditionalFields
             .Where(kvp =>

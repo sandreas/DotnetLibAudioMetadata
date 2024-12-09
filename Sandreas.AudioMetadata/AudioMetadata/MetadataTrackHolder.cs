@@ -28,7 +28,7 @@ public class MetadataTrackHolder: Track, IMetadata
     }
 
     public IDictionary<string, string> MappedAdditionalFields => MapAdditionalFields();
-    private IDictionary<string, string> MapAdditionalFields() => AdditionalFields;
+    protected virtual IDictionary<string, string> MapAdditionalFields() => AdditionalFields;
 
     public int? Bpm
     {
