@@ -77,16 +77,7 @@ public class MetadataTrack : MetadataTrackHolder
 
         if (SupportedMetadataFormats is not null && SupportedMetadataFormats.Any())
         {
-            var meta = AudioFormat?.ContainerId switch
-            {
-                AudioDataIOFactory.CID_MP4 => MetadataSpecification.Mp4,
-                AudioDataIOFactory.CID_AIFF => MetadataSpecification.Aiff,
-                AudioDataIOFactory.CID_FLAC => MetadataSpecification.Vorbis,
-                AudioDataIOFactory.CID_OGG => MetadataSpecification.Vorbis,
-                AudioDataIOFactory.CID_WMA => MetadataSpecification.WindowsMediaAsf,
-                _ => GetFirstSupportedMeta()
-            };
-
+            var meta = ContainerIdToMetadataSpecification(AudioFormat?.ContainerId ?? 0);
             if (meta != MetadataSpecification.Undefined)
             {
                 return new[] { meta };
@@ -95,8 +86,16 @@ public class MetadataTrack : MetadataTrackHolder
 
         return Array.Empty<MetadataSpecification>();
     }
-    
-    
+
+    private MetadataSpecification ContainerIdToMetadataSpecification(int containerId) => containerId switch
+    {
+        AudioDataIOFactory.CID_MP4 => MetadataSpecification.Mp4,
+        AudioDataIOFactory.CID_AIFF => MetadataSpecification.Aiff,
+        AudioDataIOFactory.CID_FLAC => MetadataSpecification.Vorbis,
+        AudioDataIOFactory.CID_OGG => MetadataSpecification.Vorbis,
+        AudioDataIOFactory.CID_WMA => MetadataSpecification.WindowsMediaAsf,
+        _ => GetFirstSupportedMeta()
+    };
 
     private MetadataSpecification GetFirstSupportedMeta()
     {
@@ -139,19 +138,26 @@ public class MetadataTrack : MetadataTrackHolder
         return "";
     }
     
-    
-    private static MetadataSpecification AtlFileFormatToMetadataFormat(Format format) => format.Name switch
+    private MetadataSpecification AtlFileFormatToMetadataFormat(Format format)
     {
-        "Native / MPEG-4" => MetadataSpecification.Mp4,
-        "Native / AIFF" => MetadataSpecification.Aiff,
-        "Native / Vorbis (OGG)" => MetadataSpecification.Vorbis,
-        "ID3v1.1" => MetadataSpecification.Id3V1,
-        "ID3v2.3" => MetadataSpecification.Id3V23,
-        "ID3v2.4" => MetadataSpecification.Id3V24,
-        "APEtag v2" => MetadataSpecification.Ape,
-        _ => MetadataSpecification.Undefined
-    };
-
+        // native formats
+        if (format.ShortName == "Native")
+        {
+            return ContainerIdToMetadataSpecification(AudioFormat.ContainerId);
+        }
+        
+        return format.Name switch
+        {
+            "Native tagging / MPEG-4" => MetadataSpecification.Mp4,
+            "Native tagging / AIFF" => MetadataSpecification.Aiff,
+            "Native tagging / Vorbis (OGG)" => MetadataSpecification.Vorbis,
+            "ID3v1.1" => MetadataSpecification.Id3V1,
+            "ID3v2.3" => MetadataSpecification.Id3V23,
+            "ID3v2.4" => MetadataSpecification.Id3V24,
+            "APEtag v2" => MetadataSpecification.Ape,
+            _ => MetadataSpecification.Undefined
+        };
+    }
     
     protected static string MapAdditionalFieldKey(MetadataSpecification format, string key) => format switch
     {
