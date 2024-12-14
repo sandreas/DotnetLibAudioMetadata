@@ -7,17 +7,17 @@ env:
   GITHUB_USER: 'sandreas'
   PROJECT_NAME: 'Sandreas.AudioMetadata'
   PROJECT_PATH: 'Sandreas.AudioMetadata/Sandreas.AudioMetadata.csproj'
-  DOTNET_VERSION: '6.0.427'
+  DOTNET_VERSION: '8.0.x'
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}          
 
@@ -28,8 +28,8 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release /p:Version=${{ steps.version.outputs.version-without-v }}
       
-#      - name: Test
-#        run: dotnet test --configuration Release /p:Version=${{ steps.version.outputs.version-without-v }} --no-build
+      - name: Test
+        run: dotnet test --configuration Release /p:Version=${{ steps.version.outputs.version-without-v }} --no-build
       
       - name: Pack
         run: dotnet pack --configuration Release --include-symbols /p:Version=${{ steps.version.outputs.version-without-v }} --no-build --output .
