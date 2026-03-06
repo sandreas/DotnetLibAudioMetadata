@@ -137,6 +137,12 @@ public class MetadataTrackHolder: Track, IMetadata
         set => SetAdditionalField(value);
     }
 
+    LyricsInfo? IMetadata.Lyrics
+    {
+        get => Lyrics.FirstOrDefault();
+        set => Lyrics = value == null ? new List<LyricsInfo>() : new List<LyricsInfo> { value };
+    }
+
 
     public MetadataTrackHolder(MetadataSpecification type = MetadataSpecification.Undefined)
     {
